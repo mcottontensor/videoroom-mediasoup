@@ -22,8 +22,8 @@ app.get('*', (req, res, next) => {
 app.use(`${urlPath}:room`, express.static(path.join(__dirname, 'public')))
 
 const options = {
-	key: fs.readFileSync('./server/ssl/key.pem', 'utf-8'),
-	cert: fs.readFileSync('./server/ssl/cert.pem', 'utf-8')
+	key: fs.readFileSync(config.ssl.keyPath, 'utf-8'),
+	cert: fs.readFileSync(config.ssl.certPath, 'utf-8')
 }
 
 const httpsServer = https.createServer(options, app)
