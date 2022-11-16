@@ -9,15 +9,15 @@ const __dirname = path.resolve()
 import { Server } from 'socket.io'
 import mediasoup from 'mediasoup'
 
+let urlPath = '/mediasoup/'
+
 app.get('*', (req, res, next) => {
-	const path = '/sfu/'
-
+	let path = urlPath
 	if (req.path.indexOf(path) == 0 && req.path.length > path.length) return next()
-
 	res.send("Specify a room")
 })
 
-app.use('/sfu/:room', express.static(path.join(__dirname, 'public')))
+app.use(`${urlPath}:room`, express.static(path.join(__dirname, 'public')))
 
 const options = {
 	key: fs.readFileSync('./server/ssl/key.pem', 'utf-8'),
