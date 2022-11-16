@@ -33,29 +33,42 @@ const io = new Server(httpsServer)
 
 const connections = io.of('/mediasoup')
 
-let worker
+let announcedIp = "127.0.0.1"
+let workers = []
+let nextWorker = 0
+let maxWorkers = 4
+let minRTCPort = 2000
+let maxRTCPort = 4000
 let rooms = {}
 let peers = {}
 let transports = []
 let producers = []
 let consumers = []
 
-const createWorker = async () => {
-	worker = await mediasoup.createWorker({
-		rtcMinPort: 2000,
-		rtcMaxPort: 4000,
-	})
-	console.log(`Worker pid ${worker.pid}`)
+const createWorkers = async () => {
+	let minPort = minRTCPort;
+	let portCount = Math.floor((maxRTCPort - minRTCPort) / maxWorkers)
+	for (let i = 0; i < maxWorkers; i++) {
+		let maxPort = minPort + portCount - 1
+		let worker = await mediasoup.createWorker({
+			rtcMinPort: minPort,
+			rtcMaxPort: maxPort,
+		})
 
-	worker.on('died', error => {
-		console.error('mediasoup worker has died')
-		setTimeout(() => process.exit(1), 2000)
-	})
+		console.log(`Worker ${i} pid ${worker.pid}`)
 
-	return worker
+		worker.on('died', error => {
+			console.error('mediasoup worker has died')
+			setTimeout(() => process.exit(1), 2000)
+		})
+
+		workers.push(worker)
+		minPort = maxPort + 1
+	}
+	nextWorker = 0
 }
 
-worker = createWorker()
+createWorkers()
 
 const mediaCodecs = [
 	{
@@ -132,7 +145,8 @@ connections.on('connection', async socket => {
 			router1 = rooms[roomName].router
 			peers = rooms[roomName].peers || []
 		} else {
-			router1 = await worker.createRouter({ mediaCodecs })
+			router1 = await workers[nextWorker].createRouter({ mediaCodecs })
+			nextWorker = (nextWorker + 1) % maxWorkers
 			console.log(`New router ID: ${router1.id}`)
 		}
 
@@ -338,7 +352,7 @@ const createWebRtcTransport = async (router) => {
 				listenIps: [
 					{
 						ip: '0.0.0.0',
-						announcedIp: '127.0.0.1',
+						announcedIp: announcedIp,
 					}
 				],
 				enableUdp: true,
