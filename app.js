@@ -1,3 +1,5 @@
+import { config } from './config.js'
+
 import express from 'express'
 const app = express()
 
@@ -33,12 +35,8 @@ const io = new Server(httpsServer)
 
 const connections = io.of('/mediasoup')
 
-let announcedIp = "127.0.0.1"
 let workers = []
 let nextWorker = 0
-let maxWorkers = 4
-let minRTCPort = 2000
-let maxRTCPort = 4000
 let rooms = {}
 let peers = {}
 let transports = []
@@ -46,10 +44,10 @@ let producers = []
 let consumers = []
 
 const createWorkers = async () => {
-	let minPort = minRTCPort;
-	let portCount = Math.floor((maxRTCPort - minRTCPort) / maxWorkers)
-	for (let i = 0; i < maxWorkers; i++) {
-		let maxPort = minPort + portCount - 1
+	let minPort = config.rtcMinPort;
+	let workerPortCount = Math.floor((config.rtcMaxPort - config.rtcMinPort) / config.maxWorkers)
+	for (let i = 0; i < config.maxWorkers; i++) {
+		let maxPort = minPort + workerPortCount - 1
 		let worker = await mediasoup.createWorker({
 			rtcMinPort: minPort,
 			rtcMaxPort: maxPort,
@@ -60,6 +58,7 @@ const createWorkers = async () => {
 		worker.on('died', error => {
 			console.error('mediasoup worker has died')
 			setTimeout(() => process.exit(1), 2000)
+			// TODO need to remove from workers and possibly update nextWorker
 		})
 
 		workers.push(worker)
@@ -69,23 +68,6 @@ const createWorkers = async () => {
 }
 
 createWorkers()
-
-const mediaCodecs = [
-	{
-		kind: 'audio',
-		mimeType: 'audio/opus',
-		clockRate: 48000,
-		channels: 2,
-	},
-	{
-		kind: 'video',
-		mimeType: 'video/VP8',
-		clockRate: 90000,
-		parameters: {
-			'x-google-start-bitrate': 1000,
-		},
-	}
-]
 
 connections.on('connection', async socket => {
 	console.log(`Peer connected: ${socket.id}`)
@@ -145,8 +127,8 @@ connections.on('connection', async socket => {
 			router1 = rooms[roomName].router
 			peers = rooms[roomName].peers || []
 		} else {
-			router1 = await workers[nextWorker].createRouter({ mediaCodecs })
-			nextWorker = (nextWorker + 1) % maxWorkers
+			router1 = await workers[nextWorker].createRouter(config.routerOptions)
+			nextWorker = (nextWorker + 1) % config.maxWorkers
 			console.log(`New router ID: ${router1.id}`)
 		}
 
@@ -348,19 +330,7 @@ connections.on('connection', async socket => {
 const createWebRtcTransport = async (router) => {
 	return new Promise(async (resolve, reject) => {
 		try {
-			const webRtcTransport_options = {
-				listenIps: [
-					{
-						ip: '0.0.0.0',
-						announcedIp: announcedIp,
-					}
-				],
-				enableUdp: true,
-				enableTcp: true,
-				preferUdp: true,
-			}
-
-			let transport = await router.createWebRtcTransport(webRtcTransport_options)
+			let transport = await router.createWebRtcTransport(config.webRtcTransportOptions)
 
 			transport.on('dtlsstatechange', dtlsState => {
 				if (dtlsState === 'closed') {
