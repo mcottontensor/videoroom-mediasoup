@@ -5,10 +5,17 @@ const roomName = window.location.pathname.split('/')[2]
 
 const socket = io('/mediasoup')
 
-socket.on('connection-success', ({ socketId }) => {
-	console.log(socketId)
-	getLocalStream()
-})
+const defaultVideoParams = {
+	// mediasoup params
+	encodings: [
+        { scaleResolutionDownBy: 4, maxBitrate: 5000000 },
+        { scaleResolutionDownBy: 2, maxBitrate: 10000000 },
+        { scaleResolutionDownBy: 1, maxBitrate: 50000000 }
+	],
+	codecOptions: {
+		videoGoogleStartBitrate: 1000000
+	}
+}
 
 let device
 let rtpCapabilities
@@ -19,33 +26,14 @@ let videoProducer
 let consumer
 let isProducer = false
 
-let params = {
-	// mediasoup params
-	encoding: [
-		{
-			rid: 'r0',
-			maxBitrate: 100000,
-			scalabilityMode: 'S1T3',
-		},
-		{
-			rid: 'r1',
-			maxBitrate: 300000,
-			scalabilityMode: 'S1T3',
-		},
-		{
-			rid: 'r2',
-			maxBitrate: 900000,
-			scalabilityMode: 'S1T3',
-		},
-	],
-	codecOptions: {
-		videoGoogleStartBitrate: 1000
-	}
-}
-
 let audioParams
-let videoParams = { params }
+let videoParams = defaultVideoParams
 let consumingTransports = []
+
+socket.on('connection-success', ({ socketId }) => {
+	console.log(socketId)
+	getLocalStream()
+})
 
 const streamSuccess = async (stream) => {
 	localVideo.srcObject = stream
@@ -65,7 +53,14 @@ const joinRoom = () => {
 }
 
 const getLocalStream = () => {
-	navigator.mediaDevices.getUserMedia({audio: true, video: true})
+	const mediaOptions = {
+		audio: true,
+		video: {
+			width: 1920,
+			height: 1080
+		}
+	}
+	navigator.mediaDevices.getUserMedia(mediaOptions)
 	.then(streamSuccess)
 	.catch((error) => {
 		console.log(error.message)

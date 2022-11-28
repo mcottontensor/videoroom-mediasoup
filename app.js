@@ -11,7 +11,8 @@ const __dirname = path.resolve()
 import { Server } from 'socket.io'
 import mediasoup from 'mediasoup'
 
-let urlPath = '/mediasoup/'
+const appPort = 4000
+const urlPath = '/mediasoup/'
 
 app.get('*', (req, res, next) => {
 	let path = urlPath
@@ -27,8 +28,8 @@ const options = {
 }
 
 const httpsServer = https.createServer(options, app)
-httpsServer.listen(3000, () => {
-	console.log('Listening on port: ' + 3000)
+httpsServer.listen(appPort, () => {
+	console.log('Listening on port: ' + appPort)
 })
 
 const io = new Server(httpsServer)
