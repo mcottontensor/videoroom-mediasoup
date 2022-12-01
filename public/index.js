@@ -8,12 +8,12 @@ const socket = io('/mediasoup')
 const defaultVideoParams = {
 	// mediasoup params
 	encodings: [
-        { scaleResolutionDownBy: 4, maxBitrate: 5000000 },
-        { scaleResolutionDownBy: 2, maxBitrate: 10000000 },
-        { scaleResolutionDownBy: 1, maxBitrate: 50000000 }
+        { scaleResolutionDownBy: 4, maxBitrate: 5_000_000 },
+        { scaleResolutionDownBy: 2, maxBitrate: 10_000_000 },
+        { scaleResolutionDownBy: 1, maxBitrate: 50_000_000 }
 	],
 	codecOptions: {
-		videoGoogleStartBitrate: 1000000
+		videoGoogleStartBitrate: 1_000_000
 	}
 }
 
