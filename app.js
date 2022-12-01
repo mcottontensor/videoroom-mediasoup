@@ -128,9 +128,10 @@ connections.on('connection', async socket => {
 			router1 = rooms[roomName].router
 			peers = rooms[roomName].peers || []
 		} else {
-			router1 = await workers[nextWorker].createRouter(config.routerOptions)
+			const thisWorker = nextWorker
 			nextWorker = (nextWorker + 1) % config.maxWorkers
-			console.log(`New router ID: ${router1.id}`)
+			router1 = await workers[thisWorker].createRouter(config.routerOptions)
+			console.log(`New router ID: ${router1.id} on worker: ${thisWorker}`)
 		}
 
 		rooms[roomName] = {
