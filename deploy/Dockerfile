@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y -q --no-install-recommends \
         wget \
     && rm -rf /var/lib/apt/lists/*
 
-ENV NVM_DIR /usr/local/nvm
+ENV NVM_DIR ~/.nvm
 ENV NODE_VERSION 19.1.0
 
 # Install nvm with node and npm
