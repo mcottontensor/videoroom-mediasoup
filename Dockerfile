@@ -1,15 +1,12 @@
-FROM ubuntu:20.04
+FROM node:19.1.0
 
-RUN apt-get update && apt-get install -y curl build-essential
+RUN apt-get update && apt-get install -y python3-pip
+WORKDIR videoroom
+COPY package.json .
+COPY config.js .
+COPY public .
+COPY server/ssl server/
+RUN npm install
+RUN npm build
 
-SHELL ["/bin/bash", "--login", "-c"]
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
-RUN source /root/.bashrc && nvm install 19.1.0
-SHELL ["/bin/bash", "--login", "-c"]
-
-RUN mkdir videoroom
-COPY package.json videoroom/
-COPY config.js videoroom/config.js
-COPY server/ssl/* videoroom/server/ssl/
-
-RUN cd videoroom && npm install
+CMD [ "node", "app.js" ]
