@@ -11,13 +11,12 @@ const __dirname = path.resolve()
 import { Server } from 'socket.io'
 import mediasoup from 'mediasoup'
 
-const appPort = 4000
 const urlPath = '/mediasoup/'
 
 app.get('*', (req, res, next) => {
 	let path = urlPath
 	if (req.path.indexOf(path) == 0 && req.path.length > path.length) return next()
-	res.send("Specify a room")
+	res.send("Specify a room name. ie " + urlPath + "room1/")
 })
 
 app.use(`${urlPath}:room`, express.static(path.join(__dirname, 'public')))
@@ -28,8 +27,8 @@ const options = {
 }
 
 const httpsServer = https.createServer(options, app)
-httpsServer.listen(appPort, () => {
-	console.log('Listening on port: ' + appPort)
+httpsServer.listen(config.appPort, () => {
+	console.log('Listening on port: ' + config.appPort)
 })
 
 const io = new Server(httpsServer)

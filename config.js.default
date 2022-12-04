@@ -3,9 +3,12 @@ const config = {
 	// max number of worker processes
 	maxWorkers: 4,
 
+	// port for test application
+	appPort: 4000,
+
 	// port range for workers
-	rtcMinPort: 2000,
-	rtcMaxPort: 4000,
+	rtcMinPort: 5000,
+	rtcMaxPort: 7000,
 
 	// options for worker.createRouter (https://mediasoup.org/documentation/v3/mediasoup/api/#RouterOptions)
 	routerOptions: {
@@ -42,8 +45,8 @@ const config = {
 
 	// ssl cert info
 	ssl: {
-		keyPath: './server/ssl/key.pem',
-		certPath: './server/ssl/cert.pem'
+		keyPath: './server/ssl/privkey.pem',
+		certPath: './server/ssl/fullchain.pem'
 	}
 }
 
